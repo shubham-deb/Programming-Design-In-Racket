@@ -1,0 +1,22 @@
+TA-1 Name:- Sujith
+TA-2 Name:- Revanth
+
+Design Grade:- AB
+Correctness Score:- 9
+TA Comments on Design:-
+
+selected? vs clicked?
+You don’t need the clicked? 
+selected? interpretation is missing.
+world-after-tick examples missing, break the code down please.
+Breaking world and circle in the same function
+new-circle - too big of a code. Please break the code down into multiple functions for readability.
+world-to-scene : too many cases, it can also be broken down into smaller functions for readability.
+Don’t need to consider the cases individually, you can club them together.
+place-redcirc and place-bluecirc can be generalized into one function
+
+
+Student1 CCIS ID:- debshubham
+Presentation Grade:- A
+TA Comments on Presentation:-
+

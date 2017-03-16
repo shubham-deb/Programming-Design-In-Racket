@@ -1,0 +1,18 @@
+TA-1 Name:- Amit Kulkarni
+TA-2 Name:- Sujith Narayan Rudrapatna Prakash
+
+Design Grade:- C
+Correctness Score:- 4/15
+TA Comments on Design:-
+1) Call graph is not uploaded.
+2) There's no 100% test coverage.
+3) Incomplete functionality.
+4) Constructor template for world is wrong.
+5) It should be ListOfCircle and not List of circles.
+6) Avoid magic constants.
+7) class-lists has a compilation error and the functionality is incomplete.
+8) check-for-duplicates? has incorrect contract.
+
+Student1 CCIS ID:- debshubham
+Presentation Grade:- A
+TA Comments on Presentation:-

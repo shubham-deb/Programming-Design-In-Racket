@@ -1,0 +1,27 @@
+TA-1 Name:- Vijay Philip (vijay86)
+TA-2 Name:- Shailesh Pujari (shail174)
+
+Design Grade for q1:- AB
+Design Grade for q2:- A
+Correctness Score for q1:- 7/15
+Correctness Score for q2:- 15/15
+
+TA Comments on Design for q1:-
+- defn-to-strings return is ListOfString i.e. should have been a separate Data Definition because the returns is not always a ListOfString
+- stack-def-body/appexp is missing invariants
+- stack-appexp-to-strings/stack-all has a WHERE clause which is not required i.e. args and nargs-so-far is length of args
+
+TA Comments on Design for q2:-
+- update-bounds given does not comply with the Data Definition but has the purpose statement to handle the case. (No Deduction)
+
+Student1 CCIS ID:- dangiank
+Presentation Grade:- A
+TA Comments on Presentation:-
+- Able to explain the program-to-strings briefly
+- Able to identify that nargs-so-far was not required
+
+Student2 CCIS ID:- debshubham
+Presentation Grade:- A
+TA Comments on Presentation:-
+- Able to explain the data definitons for the program
+- Able to explain the update-bounds i.e. how the function works

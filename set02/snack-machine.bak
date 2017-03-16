@@ -1,0 +1,218 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname snack-machine) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; snack-machine.rkt
+
+;; GOAL:to design a health-food machine 
+
+(require rackunit)
+(require "extras.rkt")
+(check-location "02" "snack-machine.rkt")
+
+(provide initial-machine)
+(provide machine-next-state)
+(provide machine-output)
+(provide machine-remaining-kale)
+(provide machine-remaining-carrots)
+(provide machine-bank)
+
+;; DATA DEFINITION
+(define-struct machinestate(kalechips carrotsticks machinebank customerbank))
+
+;; A MachineState is a (make-machinestate PosInt PosInt PosReal PosReal)
+;; kalechips indicates the numbers of bags of kale chips
+;; carrotsticks indicates the numbers of bags of carrot sticks
+;; machinebank indicates all the money that the machine has kept from customers' purchases in cents
+;; customerbank indicates the number of quarters that the customer has put in the bank
+
+;; TEMPLATE
+;; machinestate-fn : MachineState -> ??
+#|                   
+(define (machinestate-fn state)
+  (...
+    (machinestate-KaleChips state)
+    (machinestate-CarrotSticks state)
+    (machinestate-MachineBank state)
+    (machinestate-CustomerBank state)
+    ))
+|#
+
+;; EXAMPLES:
+(define s0 (make-machinestate 2 2 0 0))
+
+;; A CustomerInput is one of
+;; -- a PosInt        interp: insert the specified number of quarters
+;; -- "kale"          interp: request a bag of kale chips
+;; -- "carrots"       interp: request a bag of carrots
+;; -- "change"        interp: return all the unspent money that the
+;;                             customer has inserted
+
+;; TEMPLATE
+;; customerinput-fn : CustomerInput -> ??
+#|
+(define (customerinput-fn ci)
+ (cond
+   [(string=? ci "kale")    ...]
+   [(string=? state "carrots") ...]
+   [(string=? ci "change")  ...]
+   [ else PosInt  ...] ))  
+|#
+
+;; DATA DEFINITION
+;; A MachineOutput is one of
+;; -- "kale"           interp: machine dispenses a bag of kale chips
+;; -- "carrots"        interp: machine dispenses a bag of carrot sticks
+;; -- "Out of Item"    interp: machine displays "Out of Item"
+;; -- a PosInt         interp: machine releases the specified number of quarters
+;; -- "Nothing"        interp: the machine does nothing
+
+;; machineoutput-fn : MachineOutput -> ??
+#|
+(define (machineoutput-fn mo)
+ (cond
+   [... "kale"]
+   [... "carrots"]
+   [... change]
+   [... "Out of Item"]
+   [... "Nothing"] ))  
+|#
+
+;; FUNCTION DEFINITIONS
+
+;; initial-machine : NonNegInt NonNegInt -> MachineState
+;; GIVEN: a number of bags of kale chips and carrot sticks
+;; RETURNS: the state of a machine loaded with the given numbers of bags
+;;          of kale chips and carrot sticks, with an empty bank.
+;; EXAMPLES:
+;; (initial-machine 10 10) => (make-machinestate 10 10 0 0)
+;; DESIGN STARTEGY: Combine simpler functions
+
+(define (initial-machine kalechips carrotsticks)
+      (make-machinestate kalechips carrotsticks 0 0)
+ )
+
+;; machine-remaining-kale : MachineState -> NonNegInt
+;; GIVEN: a machine state
+;; RETURNS: the number of bags of kale chips left in the machine
+;; EXAMPLES:
+;; (machine-remaining-kale s0) => 2
+;; DESIGN STRATEGY: Use template for MachineState on state
+
+(define (machine-remaining-kale state)
+  (machinestate-kalechips state)
+  )
+
+;; TESTS
+(begin-for-test
+  (check-equal? (machine-remaining-kale s0) 2)
+ )
+
+;; machine-remaining-carrots : MachineState -> NonNegInt
+;; GIVEN: a machine state
+;; RETURNS: the number of bags of carrots left in the machine
+;; EXAMPLES:
+;; (machine-remaining-carrots s0) => 2
+;; DESIGN STRATEGY: Use template for MachineState on state
+
+(define (machine-remaining-carrots state)
+  (machinestate-carrotsticks state)
+  )
+
+;; TESTS
+( begin-for-test
+   (check-equal? (machine-remaining-carrots s0) 2) 
+ )
+
+;; machine-next-state : MachineState CustomerInput -> MachineState
+;; GIVEN: a machine state and a customer input
+;; RETURNS: the state of the machine that should follow the customer's
+;;          input
+;; EXAMPLES :
+;; (machine-next-state (make-machinestate 2 2 0 0.75) "kale") =>(make-machinestate 1 2 75 0.75)
+;; DESIGN STRATEGY : Use template for CustomerInput on customerinput
+  
+(define (machine-next-state state customerinput)
+  (cond
+    [(string? customerinput)
+     (cond [(and (string=? customerinput "change") (> (machinestate-customerbank state) 0))
+           (make-machinestate (machinestate-kalechips state) (machinestate-carrotsticks state) (machinestate-machinebank state) 0)]
+           [(and (string=? customerinput "carrots") (> (machine-remaining-carrots state) 0)(>= (machinestate-customerbank state) 0.50))
+           (make-machinestate (machinestate-kalechips state) (- (machinestate-carrotsticks state) 1) (+ (machinestate-machinebank state) 50)
+                                 (- (machinestate-customerbank state) 0.50))]
+           [(and (string=? customerinput "kale") (> (machine-remaining-kale state) 0)(>= (machinestate-customerbank state) 0.75))
+           (make-machinestate (- (machinestate-kalechips state) 1) (machinestate-carrotsticks state) (+ (machinestate-machinebank state) 75)
+                                 (- (machinestate-customerbank state) 0.75))]
+           [else state]
+      )]
+    [(number? customerinput)
+            (make-machinestate (machinestate-kalechips state) (machinestate-carrotsticks state) 0 (+ (* customerinput 0.25) (machinestate-customerbank state)) ) ]
+    [else state]
+    )
+)
+
+;; TESTS
+(begin-for-test
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0.75) "change") (make-machinestate 2 2 0 0))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0) 4) (make-machinestate 2 2 0 1))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 1) "kale") (make-machinestate 1 2 75 0.25))
+  (check-equal? (machine-next-state (make-machinestate 1 2 75 0.25) "carrots") (make-machinestate 1 2 75 0.25))
+  (check-equal? (machine-next-state (make-machinestate 1 2 0 0.25) "change") (make-machinestate 1 2 0 0))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0.75) "change") (make-machinestate 2 2 0 0))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0) "abcd") (make-machinestate 2 2 0 0))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0.75) "") (make-machinestate 2 2 0 0.75))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0.5) "carrots") (make-machinestate 2 1 50 0))
+  (check-equal? (machine-next-state (make-machinestate 2 2 0 0.75) #true) (make-machinestate 2 2 0 0.75))  
+)
+
+;; machine-output : MachineState CustomerInput -> MachineOutput
+;; GIVEN: a machine state and a customer input
+;; RETURNS: a MachineOutput that describes the machine's response to the
+;;          customer input
+;; EXAMPLES:
+;; (machine-output (make-machinestate 2 2 0 2) "change") => (make-machinestate 2 2 0 0)
+;; DESIGN STRATEGY: Use template for CustomerInput on customerinput
+
+(define (machine-output state customerinput)
+  (cond
+    [(string? customerinput)
+     (cond [(and (string=? customerinput "change") (> (machinestate-customerbank state) 0))
+            (/ (machinestate-customerbank state) 0.25)]
+           [(and (= (machine-remaining-kale state) 0) (< (machinestate-customerbank state) 0.75)  (string=? customerinput "kale")) "Nothing"]
+           [(and (= (machine-remaining-kale state) 0) (string=? customerinput "kale")) "Out of Item"]
+           [(and (= (machine-remaining-carrots state) 0) (< (machinestate-customerbank state) 0.5) (string=? customerinput "carrots")) "Nothing"]
+           [(and (= (machine-remaining-carrots state) 0) (string=? customerinput "carrots")) "Out of item"]
+           [(and (string=? customerinput "carrots") (> (machine-remaining-carrots state) 0)(>= (machinestate-customerbank state) 0.50)) "carrots"]
+           [(and (string=? customerinput "kale") (> (machine-remaining-kale state) 0)(>= (machinestate-customerbank state) 0.75)) "kale"]
+           [ else "Nothing"])
+     ]
+    [else "Nothing"]))
+
+;; TESTS
+(begin-for-test
+    (check-equal? (machine-output (make-machinestate 1 2 0.2 0.75) "kale") "kale")
+     (check-equal?(machine-output (make-machinestate 1 2 0.2 0.75) "carrots") "carrots")
+     (check-equal?(machine-output (make-machinestate 1 2 0.2 0.5) "carrots") "carrots")
+     (check-equal?(machine-output (make-machinestate 1 0 0.2 0.5) "carrots") "Out of item")
+     (check-equal?(machine-output (make-machinestate 1 2 0.2 0.4) "carrots") "Nothing")
+     (check-equal?(machine-output (make-machinestate 0 2 0.2 0.8) "kale") "Out of Item")
+     (check-equal?(machine-output (make-machinestate 1 0 0.2 0.4) "carrots") "Nothing")
+     (check-equal?(machine-output (make-machinestate 1 2 0.2 0.75) "change") 3)
+     (check-equal?(machine-output (make-machinestate 0 2 0.2 0.4) "kale") "Nothing")
+     (check-equal?(machine-output (make-machinestate 0 2 0.2 0.4) 21) "Nothing")
+     )
+
+;; machine-bank : MachineState -> NonNegInt
+;; GIVEN: a machine state
+;; RETURNS: the amount of money in the machine's bank, in cents
+;; EXAMPLES :
+;; (machine-bank (make-machinestate 2 2 20 3)) =>
+;; DESIGN STRATEGY: Combine simpler functions
+
+(define (machine-bank state)
+  (machinestate-machinebank state)
+  )
+
+;; TESTS
+(begin-for-test
+  (check-equal? (machine-bank (make-machinestate 2 2 50 0.25)) 50) 
+  )

@@ -1,0 +1,205 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname probe) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require rackunit)
+(require "extras.rkt")
+(check-location "02" "probe.rkt")
+
+(provide probe-at)
+(provide probe-turned-left)
+(provide probe-turned-right)
+(provide probe-direction-equal?)
+(provide probe-location-equal?)
+(provide probe-forward-possible-outcome?)
+
+;; DATA DEFINITION:
+(define-struct probe(x-coordinate y-coordinate direction))
+
+;; A Probe is a
+;; (make-probe Integer Integer Direction)
+;; INTERPRETATION:
+;; x-coordinate is the current x-coordinate of the probe
+;; y-coordinate is the current y-coordinate of the probe
+;; A Direction is one of:
+;; -- "n" interp:the current direction of the probe is north
+;; -- "s" interp:the current direction of the probe is south
+;; -- "w" interp:the current direction of the probe is west
+;; -- "e" interp:the current direction of the probe is east
+
+;; TEMPLATE
+;; probe-fn : Probe -> ??
+#|                   
+(define (probe-fn p)
+  (...
+    (probe-x-coordinate p)
+    (probe-y-coordinate p)
+    (probe-direction p)))
+|#
+
+;; direction-fn : Direction -> ??
+#|                   
+(define (direction-fn d)
+  (cond
+    [(string=? "n" d)...]
+    [(string=? "e" d)...]
+    [(string=? "s" d)...]
+    [(string=? "w" d)...]
+    ))
+|#
+
+;; FUNCTION DEFINITIONS
+
+;; probe-at: Integer Integer -> Probe
+;; GIVEN: an x-coordinate and a y-coordinate
+;; RETURNS: a probe with its center at those coordinates, facing north.
+;; EXAMPLES:
+;; (define probe1 (probe-at 0 0)) => (make-probe 0 0 "n")
+;; DESIGN STARTEGY:combine simpler functions
+
+(define (probe-at x y)
+  (make-probe x y "n")
+ )
+
+;; probe-turned-left : Probe -> Probe
+;; probe-turned-right : Probe -> Probe
+;; GIVEN: a probe
+;; RETURNS: a probe like the original, but turned 90 degrees either left
+;;         or right.
+;; EXAMPLES:
+;; (define probe2 (make-probe 0 -1 "n"))
+;; (probe-turned-left probe1) => (0 -1 "l")
+;; (probe-turned-right probe1) => (0 -1 "r")
+;; DESIGN STRATEGY: Use template for Direction on probe-direction
+
+(define (probe-turned-left probe)
+  (cond
+  [(string=? (probe-direction probe) "n")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "w")]
+  [(string=? (probe-direction probe) "e")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "n")]
+  [(string=? (probe-direction probe) "s")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "e")]
+  [(string=? (probe-direction probe) "w")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "s")]
+  )
+ )
+
+(define (probe-turned-right probe)
+ (cond
+  [(string=? (probe-direction probe) "n")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "e")]
+  [(string=? (probe-direction probe) "e")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "s")]
+  [(string=? (probe-direction probe) "s")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "w")]
+  [(string=? (probe-direction probe) "w")(make-probe (probe-x-coordinate probe) (probe-y-coordinate probe) "n")]
+  )
+ )
+
+;; TESTS
+(begin-for-test
+  (check-equal? (probe-turned-left (make-probe 1 1 "n")) (make-probe 1 1 "w"))
+  (check-equal? (probe-turned-left (make-probe 1 1 "w")) (make-probe 1 1 "s"))
+  (check-equal? (probe-turned-left (make-probe 1 1 "s")) (make-probe 1 1 "e"))
+  (check-equal? (probe-turned-left (make-probe 1 1 "e")) (make-probe 1 1 "n"))
+  
+  (check-equal? (probe-turned-right (make-probe 1 1 "n")) (make-probe 1 1 "e"))
+  (check-equal? (probe-turned-right (make-probe 1 1 "e")) (make-probe 1 1 "s"))
+  (check-equal? (probe-turned-right (make-probe 1 1 "s")) (make-probe 1 1 "w"))
+  (check-equal? (probe-turned-right (make-probe 1 1 "w")) (make-probe 1 1 "n"))
+ )
+
+;; probe-direction-equal? : Probe Probe -> Boolean
+;; GIVEN: two probes
+;; RETURNS: true iff the two probes are facing in the same direction,
+;;          else false
+;; EXAMPLES:
+;; (probe-direction-equal? probe1 probe2) -> #true
+;; DESIGN STARTEGY: Use template for probe on p1 and p2
+
+(define (probe-direction-equal? p1 p2)
+  (if (equal? (probe-direction p1)(probe-direction p2))
+      #true
+      #false)
+)
+
+;; TESTS
+(begin-for-test
+  (check-equal? (probe-direction-equal? (make-probe 2 2 "n") (make-probe 5 3 "n")) #true)
+ )
+
+;; probe-location-equal? : Probe Probe -> Boolean
+;; GIVEN: two probes
+;; RETURNS: true iff the two probes are at the same location
+;; EXAMPLES:
+;; (define pr1 (make-probe 0 0 "n"))
+;; (define pr2 (make-probe 0 2 "s"))
+;; (probe-location-equal? pr1 pr2) => #false
+;; DESIGN STARTEGY : Use template for Probe on p1 and p2
+
+(define (probe-location-equal? p1 p2)
+  (if (and (equal? (probe-x-coordinate p1)(probe-x-coordinate p2))
+      (equal? (probe-y-coordinate p1)(probe-y-coordinate p2))
+       )
+      #true
+      #false)
+ )
+
+;; TESTS
+(define pr1 (make-probe 0 0 "n"))
+(define pr2 (make-probe 0 2 "s"))
+(define pr3 (make-probe 0 0 "e"))
+(begin-for-test
+  (check-equal?(probe-location-equal? pr1 pr2) #false)
+  (check-equal?(probe-location-equal? pr1 pr3) #true)
+ )
+
+;; HELPER FUNCTION
+;; probe-moved-forward : Probe PosInt -> Probe
+;; GIVEN : a probe and the number of steps the probe has to move forward
+;; RETURNS : a probe that moved forward the corresponding number of steps
+;; EXAMPLES:
+;; (probe-moved-forward (make-state 0 0 "n") 1) -> (make-state 0 -1 "n")
+;; DESIGN STRATEGY : Use template for Direction on probe-direction
+
+(define (probe-moved-forward probe step)
+  (cond
+    [(string=? (probe-direction probe) "n")(make-probe (probe-x-coordinate probe)(- (probe-y-coordinate probe) step) (probe-direction probe))]
+    [(string=? (probe-direction probe) "s")(make-probe (probe-x-coordinate probe)(+ (probe-y-coordinate probe) step) (probe-direction probe))]
+    [(string=? (probe-direction probe) "e")(make-probe (+ (probe-x-coordinate probe) step)(probe-y-coordinate probe) (probe-direction probe))]
+    [(string=? (probe-direction probe) "w")(make-probe (- (probe-x-coordinate probe) step)(probe-y-coordinate probe) (probe-direction probe))]
+  ))
+
+;; TESTS
+(begin-for-test
+  (check-equal? (probe-moved-forward (make-probe 0 0 "n") 1) (make-probe 0 -1 "n"))
+  (check-equal? (probe-moved-forward (make-probe 0 0 "s") 1) (make-probe 0 1 "s"))
+  (check-equal? (probe-moved-forward (make-probe 0 0 "e") 1) (make-probe 1 0 "e"))
+  (check-equal? (probe-moved-forward (make-probe 0 0 "w") 1) (make-probe -1 0 "w"))
+)
+
+;; probe-forward-possible-outcome? : Probe PosInt Probe -> Boolean
+;; GIVEN: two probes and a distance
+;; RETURNS: true iff the first probe, given a move-forward command with
+;;         the specified number of steps, could wind up in the state described by
+;;         the second probe.
+;; EXAMPLES :
+;; (define prb1 (make-probe 0 0 "n"))
+;; (define prb2 (make-probe 1 0 "s"))
+;; (probe-forward-possible-outcome? prb1 2 prb2) -> #false
+;; DESIGN STRATEGY : Combine simpler functions
+
+(define (probe-forward-possible-outcome? p1 step p2)
+ (if (and (probe-direction-equal? p1 p2)
+          (or (probe-location-equal? (probe-moved-forward p1 step) p2)
+              (probe-location-equal? (probe-moved-forward p1 (+ step 1)) p2)
+              (probe-location-equal? (probe-moved-forward p1 (- step 1)) p2)) )
+               #true
+               #false)
+ )
+
+;; TESTS
+(begin-for-test
+  (check-equal?(probe-forward-possible-outcome? (make-probe 2 1 "n") 1 (make-probe 2 0 "n")) #true)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 2 1 "n") 1 (make-probe 2 2 "n")) #false)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 12 0 "s") 3 (make-probe 12 3 "s")) #true)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 2 1 "s") 1 (make-probe 2 0 "s")) #false)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 22 13 "e") 10 (make-probe 32 13 "e")) #true)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 5 1 "e") 1 (make-probe 3 0 "e")) #false)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 10 3 "w") 2 (make-probe 8 3 "w")) #true)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 2 1 "w") 1 (make-probe 2 0 "w")) #false)
+  (check-equal?(probe-forward-possible-outcome? (make-probe 2 1 "s") 1 (make-probe 2 0 "n")) #false)
+ )
